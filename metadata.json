@@ -1,0 +1,7 @@
+{
+  "name": "Copy of ArtJunky: AI Image Generator",
+  "description": "An interactive web application that transforms user-uploaded images or text prompts into various artistic styles using the Gemini AI. Features include style selection, aspect ratio control, variant generation, and an interactive before-and-after comparison slider for image-to-image transformations.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

@@ -1,4 +1,5 @@
-import { GoogleGenAI, Modality, ContentPart, GenerateVideosOperationResponse } from "@google/genai";
+
+import { GoogleGenAI, Modality, GenerateVideosOperation } from "@google/genai";
 import { ArtStyle, UpscaleType } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
@@ -70,7 +71,7 @@ function constructPrompt(
 }
 
 async function generateSingleImage(prompt: string, base64Image?: string, mimeType?: string): Promise<string> {
-    const parts: ContentPart[] = [];
+    const parts: any[] = [];
     
     if (base64Image && mimeType) {
         parts.push({
@@ -135,7 +136,7 @@ export async function removeImageBackground(base64ImageWithHeader: string): Prom
 
     const prompt = "Remove the background of this image. Make the background transparent. Output a PNG file.";
     
-    const parts: ContentPart[] = [{
+    const parts: any[] = [{
         inlineData: {
             data: base64Image,
             mimeType: mimeType,
@@ -168,7 +169,7 @@ export async function removeObjectsFromImage(base64ImageWithHeader: string, cust
 
     const prompt = customPrompt || "This image contains a transparent area. Please fill in the transparent area realistically and seamlessly based on the surrounding pixels. Only fill the transparent area, do not change anything else.";
     
-    const parts: ContentPart[] = [{
+    const parts: any[] = [{
         inlineData: {
             data: base64Image,
             mimeType: mimeType,
@@ -224,7 +225,7 @@ export async function editImage(base64ImageWithHeader: string, prompt: string): 
     }
     const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png';
 
-    const parts: ContentPart[] = [{
+    const parts: any[] = [{
         inlineData: {
             data: base64Image,
             mimeType: mimeType,
@@ -295,7 +296,7 @@ export async function enhanceImageQuality(
         }
     }
     
-    const parts: ContentPart[] = [{
+    const parts: any[] = [{
         inlineData: {
             data: base64Image,
             mimeType: mimeType,
@@ -356,7 +357,7 @@ export async function generateVideo({
     }
 
     onProgress("Initiating video generation...");
-    let operation: GenerateVideosOperationResponse = await ai.models.generateVideos(payload);
+    let operation: GenerateVideosOperation = await ai.models.generateVideos(payload);
     
     const pollingInterval = 10000; // 10 seconds
     const statusMessages = [

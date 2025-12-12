@@ -45,8 +45,31 @@ const inpaintCategories: Category[] = [
             { id: 'macho', name: 'Macho', prompt: 'Modify the body shape in the selected area to be more muscular and macho. Make the changes look natural and realistic.', image: 'https://picsum.photos/seed/macho/200' },
         ]
     },
-    { id: 'hair', name: 'Hair', presets: [] },
-    { id: 'skin', name: 'Skin', presets: [] },
+    { 
+        id: 'hair', 
+        name: 'Hair', 
+        presets: [
+            { id: 'custom_hair', name: 'Custom', prompt: 'Use a custom prompt to modify hair.', image: 'https://picsum.photos/seed/custom_hair/200' },
+            { id: 'blonde_hair', name: 'Blonde', prompt: 'Change the hair color in the selected area to a natural blonde.', image: 'https://picsum.photos/seed/blonde/200' },
+            { id: 'red_hair', name: 'Red', prompt: 'Change the hair color in the selected area to a vibrant red.', image: 'https://picsum.photos/seed/redhair/200' },
+            { id: 'blue_hair', name: 'Blue', prompt: 'Change the hair color in the selected area to electric blue.', image: 'https://picsum.photos/seed/bluehair/200' },
+            { id: 'curly_hair', name: 'Curly', prompt: 'Change the hair texture in the selected area to be curly.', image: 'https://picsum.photos/seed/curly/200' },
+            { id: 'short_hair', name: 'Short Cut', prompt: 'Change the hairstyle in the selected area to a short, modern cut.', image: 'https://picsum.photos/seed/shorthair/200' },
+            { id: 'long_hair', name: 'Long Hair', prompt: 'Change the hairstyle in the selected area to be long and flowing.', image: 'https://picsum.photos/seed/longhair/200' },
+        ] 
+    },
+    { 
+        id: 'skin', 
+        name: 'Skin', 
+        presets: [
+            { id: 'custom_skin', name: 'Custom', prompt: 'Use a custom prompt to modify skin.', image: 'https://picsum.photos/seed/custom_skin/200' },
+            { id: 'smooth_skin', name: 'Smooth', prompt: 'Smooth the skin in the selected area, removing blemishes and imperfections while keeping it realistic.', image: 'https://picsum.photos/seed/smooth/200' },
+            { id: 'tanned_skin', name: 'Tanned', prompt: 'Make the skin in the selected area look naturally tanned and sun-kissed.', image: 'https://picsum.photos/seed/tanned/200' },
+            { id: 'pale_skin', name: 'Pale', prompt: 'Make the skin in the selected area look pale and porcelain-like.', image: 'https://picsum.photos/seed/pale/200' },
+            { id: 'tattoo', name: 'Tattoo', prompt: 'Add an artistic black ink flower tattoo to the skin in the selected area.', image: 'https://picsum.photos/seed/tattoo/200' },
+            { id: 'gold_skin', name: 'Gold Paint', prompt: 'Cover the skin in the selected area with metallic gold body paint.', image: 'https://picsum.photos/seed/goldskin/200' },
+        ] 
+    },
 ];
 
 interface Point { x: number, y: number }
@@ -206,8 +229,6 @@ const MaskingCanvas = forwardRef<MaskingCanvasRef, MaskingCanvasProps>(({ imageS
         const maskCanvas = maskCanvasRef.current;
         if (!imageCanvas || !maskCanvas) return;
 
-        // Debounce mask generation slightly to avoid lag during rapid undo/redo? 
-        // For now, synchronous is fine for basic size.
         const offscreenCanvas = document.createElement('canvas');
         offscreenCanvas.width = imageCanvas.width;
         offscreenCanvas.height = imageCanvas.height;
@@ -358,6 +379,7 @@ const AiInpaintScreen: React.FC<AiInpaintScreenProps> = ({ navigate, initialImag
     const [canRedoMask, setCanRedoMask] = useState(false);
     const maskCanvasRef = useRef<MaskingCanvasRef>(null);
     const maskInputRef = useRef<HTMLInputElement>(null);
+    const customPromptInputRef = useRef<HTMLInputElement>(null);
 
     // State for refining the mask and regenerating
     const [isRefiningMask, setIsRefiningMask] = useState(false);
@@ -442,14 +464,14 @@ const AiInpaintScreen: React.FC<AiInpaintScreenProps> = ({ navigate, initialImag
     };
 
     const handleGenerate = async (preset: Preset) => {
-        let finalPrompt = preset.prompt;
         if (preset.id.startsWith('custom')) {
-            const customInput = prompt('Enter your custom instruction:');
-            if (!customInput) return;
-            finalPrompt = customInput;
+            // Just focus the input if they click the Custom preset
+            customPromptInputRef.current?.focus();
+            return;
         }
-        setLastUsedPrompt(finalPrompt);
-        await runGeneration(finalPrompt);
+        
+        setLastUsedPrompt(preset.prompt);
+        await runGeneration(preset.prompt);
     };
 
     const handleCustomGenerate = async () => {
@@ -792,6 +814,7 @@ const AiInpaintScreen: React.FC<AiInpaintScreenProps> = ({ navigate, initialImag
                                 <div className="flex gap-2">
                                     <input 
                                         type="text" 
+                                        ref={customPromptInputRef}
                                         value={customPromptText}
                                         onChange={(e) => setCustomPromptText(e.target.value)}
                                         placeholder="Describe what to generate in the masked area..."

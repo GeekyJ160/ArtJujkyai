@@ -5,6 +5,14 @@ import { ArtStyle, UpscaleType } from "../types";
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
 const model = 'gemini-2.5-flash-image';
 
+// Safety settings to prevent over-blocking which leads to empty responses
+const safetySettings = [
+    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
+    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
+];
+
 interface GenerationParams {
     style: ArtStyle;
     intensity: number;
@@ -87,6 +95,7 @@ async function generateSingleImage(prompt: string, base64Image?: string, mimeTyp
     const response = await ai.models.generateContent({
         model: model,
         contents: { parts },
+        config: { safetySettings },
     });
 
     let textResponse = '';
@@ -139,7 +148,7 @@ export async function removeImageBackground(base64ImageWithHeader: string): Prom
     }
     const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png';
 
-    const prompt = "Remove the background of this image. Make the background transparent. Output a PNG file.";
+    const prompt = "Identify the main subject in the image and remove the background. Return the image with a transparent background.";
     
     const parts: any[] = [{
         inlineData: {
@@ -151,6 +160,7 @@ export async function removeImageBackground(base64ImageWithHeader: string): Prom
     const response = await ai.models.generateContent({
         model: model,
         contents: { parts },
+        config: { safetySettings },
     });
 
     let textResponse = '';
@@ -177,7 +187,7 @@ export async function removeObjectsFromImage(base64ImageWithHeader: string, cust
     }
     const mimeType = header.match(/:(.*?);/)?.[1] || 'image/png';
 
-    const prompt = customPrompt || "This image contains a transparent area. Please fill in the transparent area realistically and seamlessly based on the surrounding pixels. Only fill the transparent area, do not change anything else.";
+    const prompt = customPrompt || "This image contains a transparent area. Fill in the transparent area realistically and seamlessly based on the surrounding pixels. Only fill the transparent area, do not change anything else.";
     
     const parts: any[] = [{
         inlineData: {
@@ -189,6 +199,7 @@ export async function removeObjectsFromImage(base64ImageWithHeader: string, cust
     const response = await ai.models.generateContent({
         model: model,
         contents: { parts },
+        config: { safetySettings },
     });
 
     let textResponse = '';
@@ -250,6 +261,7 @@ export async function editImage(base64ImageWithHeader: string, prompt: string): 
     const response = await ai.models.generateContent({
         model: model,
         contents: { parts },
+        config: { safetySettings },
     });
 
     let textResponse = '';
@@ -326,6 +338,7 @@ export async function enhanceImageQuality(
     const response = await ai.models.generateContent({
         model: model,
         contents: { parts },
+        config: { safetySettings },
     });
 
     let textResponse = '';

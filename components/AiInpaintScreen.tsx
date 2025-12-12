@@ -338,6 +338,7 @@ const AiInpaintScreen: React.FC<AiInpaintScreenProps> = ({ navigate, initialImag
     const [maskedImageForApi, setMaskedImageForApi] = useState<string | null>(null);
     const [results, setResults] = useState<string[]>([]);
     const [activeResult, setActiveResult] = useState<string | null>(null);
+    const [customPromptText, setCustomPromptText] = useState('');
     
     // Generation History
     const [generationHistory, setGenerationHistory] = useState<string[][]>([]);
@@ -450,6 +451,15 @@ const AiInpaintScreen: React.FC<AiInpaintScreenProps> = ({ navigate, initialImag
         setLastUsedPrompt(finalPrompt);
         await runGeneration(finalPrompt);
     };
+
+    const handleCustomGenerate = async () => {
+        if (!customPromptText.trim()) {
+            setError('Please enter a description for the edit.');
+            return;
+        }
+        setLastUsedPrompt(customPromptText);
+        await runGeneration(customPromptText);
+    };
     
     const handleReset = () => {
       setImage(null);
@@ -462,6 +472,7 @@ const AiInpaintScreen: React.FC<AiInpaintScreenProps> = ({ navigate, initialImag
       setPreviousResults([]);
       setGenerationHistory([]);
       setHistoryIndex(-1);
+      setCustomPromptText('');
     };
 
     const handleDownload = (imageUrl: string | null) => {
@@ -774,6 +785,28 @@ const AiInpaintScreen: React.FC<AiInpaintScreenProps> = ({ navigate, initialImag
                                         <p className="text-xs mt-1.5 font-medium text-gray-600">{preset.name}</p>
                                     </div>
                                )) : <p className="col-span-full text-center text-sm text-gray-400 py-4">Presets for {activeCategory.name} coming soon!</p>}
+                            </div>
+
+                             <div className="mt-4 pt-4 border-t border-gray-100">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Custom Prompt</label>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        value={customPromptText}
+                                        onChange={(e) => setCustomPromptText(e.target.value)}
+                                        placeholder="Describe what to generate in the masked area..."
+                                        className="flex-grow bg-gray-100 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                                        onKeyDown={(e) => e.key === 'Enter' && handleCustomGenerate()}
+                                    />
+                                    <button 
+                                        onClick={handleCustomGenerate}
+                                        disabled={isLoading || !customPromptText.trim() || !maskedImageForApi}
+                                        className="bg-purple-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-purple-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                                    >
+                                        <MagicWandIcon className="w-4 h-4" />
+                                        Generate
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}

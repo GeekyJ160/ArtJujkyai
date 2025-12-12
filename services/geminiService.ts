@@ -87,15 +87,20 @@ async function generateSingleImage(prompt: string, base64Image?: string, mimeTyp
     const response = await ai.models.generateContent({
         model: model,
         contents: { parts },
-        config: {
-            responseModalities: [Modality.IMAGE],
-        },
     });
 
+    let textResponse = '';
     for (const part of response.candidates?.[0]?.content?.parts ?? []) {
       if (part.inlineData) {
           return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
       }
+      if (part.text) {
+          textResponse += part.text;
+      }
+    }
+
+    if (textResponse) {
+        throw new Error(`Generation failed: ${textResponse}`);
     }
 
     throw new Error('Image generation failed or returned an unexpected format.');
@@ -146,15 +151,20 @@ export async function removeImageBackground(base64ImageWithHeader: string): Prom
     const response = await ai.models.generateContent({
         model: model,
         contents: { parts },
-        config: {
-            responseModalities: [Modality.IMAGE],
-        },
     });
 
+    let textResponse = '';
     for (const part of response.candidates?.[0]?.content?.parts ?? []) {
       if (part.inlineData) {
           return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
       }
+      if (part.text) {
+          textResponse += part.text;
+      }
+    }
+    
+    if (textResponse) {
+        throw new Error(`Background removal failed: ${textResponse}`);
     }
     
     throw new Error('Background removal failed or returned an unexpected format.');
@@ -179,15 +189,20 @@ export async function removeObjectsFromImage(base64ImageWithHeader: string, cust
     const response = await ai.models.generateContent({
         model: model,
         contents: { parts },
-        config: {
-            responseModalities: [Modality.IMAGE],
-        },
     });
 
+    let textResponse = '';
     for (const part of response.candidates?.[0]?.content?.parts ?? []) {
       if (part.inlineData) {
           return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
       }
+      if (part.text) {
+          textResponse += part.text;
+      }
+    }
+    
+    if (textResponse) {
+        throw new Error(`Object removal failed: ${textResponse}`);
     }
     
     throw new Error('Object removal failed or returned an unexpected format.');
@@ -235,15 +250,20 @@ export async function editImage(base64ImageWithHeader: string, prompt: string): 
     const response = await ai.models.generateContent({
         model: model,
         contents: { parts },
-        config: {
-            responseModalities: [Modality.IMAGE],
-        },
     });
 
+    let textResponse = '';
     for (const part of response.candidates?.[0]?.content?.parts ?? []) {
       if (part.inlineData) {
           return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
       }
+      if (part.text) {
+          textResponse += part.text;
+      }
+    }
+    
+    if (textResponse) {
+        throw new Error(`Image editing failed: ${textResponse}`);
     }
     
     throw new Error('Image editing failed or returned an unexpected format.');
@@ -306,15 +326,20 @@ export async function enhanceImageQuality(
     const response = await ai.models.generateContent({
         model: model,
         contents: { parts },
-        config: {
-            responseModalities: [Modality.IMAGE],
-        },
     });
 
+    let textResponse = '';
     for (const part of response.candidates?.[0]?.content?.parts ?? []) {
       if (part.inlineData) {
           return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
       }
+      if (part.text) {
+          textResponse += part.text;
+      }
+    }
+    
+    if (textResponse) {
+         throw new Error(`Image enhancement failed: ${textResponse}`);
     }
     
     throw new Error('Image enhancement failed or returned an unexpected format.');

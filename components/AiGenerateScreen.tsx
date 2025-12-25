@@ -1,19 +1,17 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { ArtStyle, UpscaleType } from '../types';
-import { generateImageVariants, enhanceImageQuality } from '../services/geminiService';
+import { generateImageVariants, enhanceImageQuality, AspectRatioValue } from '../services/geminiService';
 import { styleOptions } from '../utils/constants';
 import Header from './Header';
 import UploadZone from './UploadZone';
 import StyleSelector from './StyleSelector';
-import OptionsPanel from './OptionsPanel';
+import OptionsPanel, { AspectRatio } from './OptionsPanel';
 import ProcessingView from './ProcessingView';
 import ResultsGrid from './ResultsGrid';
 import { ImagePreview } from './ImagePreview';
 import ImageEditor from './ImageEditor';
 import ScreenHeader from './ScreenHeader';
-
-type AspectRatio = 'portrait' | 'square' | 'landscape' | 'auto';
 
 interface AiGenerateScreenProps {
     navigate: (screen: string) => void;
@@ -114,24 +112,27 @@ const AiGenerateScreen: React.FC<AiGenerateScreenProps> = ({ navigate, initialIm
         setStatusText('Preparing your masterpiece...');
 
         try {
-            let resolvedAspectRatio: 'portrait' | 'square' | 'landscape' = 'square';
+            let resolvedAspectRatio: AspectRatioValue = '1:1';
             if (aspectRatio === 'auto') {
                 if (uploadedImage) {
                     resolvedAspectRatio = await new Promise((resolve) => {
                         const img = new Image();
                         img.onload = () => {
-                            if (img.width > img.height) resolve('landscape');
-                            else if (img.height > img.width) resolve('portrait');
-                            else resolve('square');
+                            const ratio = img.width / img.height;
+                            if (ratio > 1.5) resolve('16:9');
+                            else if (ratio > 1.1) resolve('4:3');
+                            else if (ratio < 0.6) resolve('9:16');
+                            else if (ratio < 0.9) resolve('3:4');
+                            else resolve('1:1');
                         };
-                        img.onerror = () => resolve('square'); // Default on error
+                        img.onerror = () => resolve('1:1');
                         img.src = uploadedImage;
                     });
                 } else {
-                    resolvedAspectRatio = 'square';
+                    resolvedAspectRatio = '1:1';
                 }
             } else {
-                resolvedAspectRatio = aspectRatio;
+                resolvedAspectRatio = aspectRatio as AspectRatioValue;
             }
 
             const base64Image = uploadedImage?.split(',')[1];
@@ -194,7 +195,7 @@ const AiGenerateScreen: React.FC<AiGenerateScreenProps> = ({ navigate, initialIm
                     imageSrc={originalUpload}
                     onClose={handleCloseEditor}
                     onApply={handleApplyEdit}
-                    aspectRatio={aspectRatio === 'auto' ? 'square' : aspectRatio}
+                    aspectRatio="square"
                 />
             )}
             

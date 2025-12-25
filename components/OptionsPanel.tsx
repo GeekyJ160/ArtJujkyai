@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { MoreIcon } from './icons';
 
-type AspectRatio = 'portrait' | 'square' | 'landscape' | 'auto';
+export type AspectRatio = '1:1' | '16:9' | '9:16' | '4:3' | '3:4' | 'auto';
 
 interface OptionsPanelProps {
     selectedVariants: number;
@@ -24,9 +25,11 @@ interface OptionsPanelProps {
 
 const aspectRatioOptions: { value: AspectRatio; label: string }[] = [
     { value: 'auto', label: 'Auto' },
-    { value: 'portrait', label: '9:16' },
-    { value: 'square', label: '1:1' },
-    { value: 'landscape', label: '16:9' },
+    { value: '1:1', label: '1:1' },
+    { value: '16:9', label: '16:9' },
+    { value: '9:16', label: '9:16' },
+    { value: '4:3', label: '4:3' },
+    { value: '3:4', label: '3:4' },
 ];
 
 const OptionsPanel: React.FC<OptionsPanelProps> = ({
@@ -98,12 +101,12 @@ const OptionsPanel: React.FC<OptionsPanelProps> = ({
                 </div>
                  <div>
                     <h3 className="font-semibold mb-3 text-gray-700">Image Aspect Ratio</h3>
-                    <div className="flex space-x-2">
+                    <div className="flex flex-wrap gap-2">
                         {aspectRatioOptions.map(option => (
                             <button
                                 key={option.value}
                                 onClick={() => onAspectRatioChange(option.value)}
-                                className={`flex-1 py-2 px-4 rounded-md text-sm font-semibold transition-colors duration-300 ${aspectRatio === option.value ? 'bg-purple-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
+                                className={`py-2 px-3 min-w-[3rem] rounded-md text-xs font-semibold transition-colors duration-300 ${aspectRatio === option.value ? 'bg-purple-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
                             >
                                 {option.label}
                             </button>

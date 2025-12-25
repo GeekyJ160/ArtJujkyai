@@ -13,6 +13,8 @@ const safetySettings = [
     { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
 ];
 
+export type AspectRatioValue = '1:1' | '16:9' | '9:16' | '4:3' | '3:4';
+
 interface GenerationParams {
     style: ArtStyle;
     intensity: number;
@@ -20,7 +22,7 @@ interface GenerationParams {
     variants: number;
     customPrompt: string;
     negativePrompt: string;
-    aspectRatio: 'portrait' | 'square' | 'landscape';
+    aspectRatio: AspectRatioValue;
     onProgress: (progress: number) => void;
     base64Image?: string;
     mimeType?: string;
@@ -32,7 +34,6 @@ function constructPrompt(
     styleIntensity: number,
     customPrompt: string,
     negativePromptInput: string,
-    aspectRatio: string,
     isTextToImage: boolean
 ): string {
   let intensityPrompt = '';
@@ -43,11 +44,6 @@ function constructPrompt(
   } else {
     intensityPrompt = 'good quality, detailed';
   }
-
-  let aspectRatioPrompt = '';
-  if (aspectRatio === 'portrait') aspectRatioPrompt = 'portrait orientation, 9:16 aspect ratio';
-  if (aspectRatio === 'landscape') aspectRatioPrompt = 'landscape orientation, 16:9 aspect ratio';
-  if (aspectRatio === 'square') aspectRatioPrompt = 'square image, 1:1 aspect ratio';
 
   const defaultNegativePrompt = 'blurry, low quality, deformed, ugly, extra limbs, disfigured, text, watermarks, signatures';
   const combinedNegative = [defaultNegativePrompt, negativePromptInput].filter(Boolean).join(', ');
@@ -64,7 +60,7 @@ function constructPrompt(
       }
       const finalStylePrompt = stylePrefix ? `${stylePrefix} ${mainPrompt}` : mainPrompt;
       const textToImageCorePrompt = customPrompt || `A beautiful image in the style of ${style.name}`;
-      return `A masterpiece image of ${textToImageCorePrompt}, ${finalStylePrompt}. ${intensityPrompt}. ${aspectRatioPrompt}. ${finalNegativePrompt}`;
+      return `A masterpiece image of ${textToImageCorePrompt}, ${finalStylePrompt}. ${intensityPrompt}. ${finalNegativePrompt}`;
   }
 
   let transformationInstruction = "Transform the provided image. Recreate it";
@@ -75,10 +71,10 @@ function constructPrompt(
   } else if (styleIntensity < 40) {
     transformationInstruction = `Gently adapt the provided image, keeping the original composition. Apply subtle hints of`;
   }
-  return `${transformationInstruction} ${mainPrompt}. The new image should be ${intensityPrompt}. ${aspectRatioPrompt}. ${finalNegativePrompt}`;
+  return `${transformationInstruction} ${mainPrompt}. The new image should be ${intensityPrompt}. ${finalNegativePrompt}`;
 }
 
-async function generateSingleImage(prompt: string, base64Image?: string, mimeType?: string): Promise<string> {
+async function generateSingleImage(prompt: string, aspectRatio: AspectRatioValue, base64Image?: string, mimeType?: string): Promise<string> {
     const parts: any[] = [];
     
     if (base64Image && mimeType) {
@@ -95,7 +91,12 @@ async function generateSingleImage(prompt: string, base64Image?: string, mimeTyp
     const response = await ai.models.generateContent({
         model: model,
         contents: { parts },
-        config: { safetySettings },
+        config: { 
+            safetySettings,
+            imageConfig: {
+                aspectRatio: aspectRatio
+            }
+        },
     });
 
     let textResponse = '';
@@ -128,11 +129,11 @@ export async function generateImageVariants({
     mimeType,
 }: GenerationParams): Promise<string[]> {
     const isTextToImage = !base64Image;
-    const prompt = constructPrompt(style, intensity, styleIntensity, customPrompt, negativePrompt, aspectRatio, isTextToImage);
+    const prompt = constructPrompt(style, intensity, styleIntensity, customPrompt, negativePrompt, isTextToImage);
     const results: string[] = [];
 
     for (let i = 0; i < variants; i++) {
-        const result = await generateSingleImage(prompt, base64Image, mimeType);
+        const result = await generateSingleImage(prompt, aspectRatio, base64Image, mimeType);
         results.push(result);
         const progress = ((i + 1) / variants) * 100;
         onProgress(progress);
